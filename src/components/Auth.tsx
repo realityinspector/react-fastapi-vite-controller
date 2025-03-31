@@ -11,6 +11,7 @@ const Auth = ({ onLogin }: AuthProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -26,10 +27,14 @@ const Auth = ({ onLogin }: AuthProps) => {
         const formData = new FormData();
         formData.append('username', email);
         formData.append('password', password);
-
         response = await axios.post(`${API_URL}/token`, formData);
       } else {
         // Register
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
         response = await axios.post(`${API_URL}/register`, { email, password });
       }
 
@@ -50,7 +55,7 @@ const Auth = ({ onLogin }: AuthProps) => {
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-6 text-center">
-        {isLogin ? 'Login' : 'Register'}
+        {isLogin ? 'Sign in to your account' : 'Create an account'}
       </h2>
       
       {error && (
@@ -59,23 +64,23 @@ const Auth = ({ onLogin }: AuthProps) => {
         </div>
       )}
       
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-            Email
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            Email address
           </label>
           <input
             type="email"
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             required
           />
         </div>
         
-        <div className="mb-6">
-          <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
             Password
           </label>
           <input
@@ -83,28 +88,48 @@ const Auth = ({ onLogin }: AuthProps) => {
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             required
           />
         </div>
+
+        {!isLogin && (
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              required
+            />
+          </div>
+        )}
         
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
-          {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
+          {loading ? 'Processing...' : (isLogin ? 'Sign in' : 'Register')}
         </button>
+
+        <div className="text-sm text-center mt-4">
+          <button
+            type="button"
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError('');
+            }}
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            {isLogin ? 'Need an account? Register' : 'Already have an account? Sign in'}
+          </button>
+        </div>
       </form>
-      
-      <div className="mt-4 text-center">
-        <button
-          onClick={() => setIsLogin(!isLogin)}
-          className="text-blue-500 hover:underline focus:outline-none"
-        >
-          {isLogin ? 'Need an account? Register' : 'Already have an account? Login'}
-        </button>
-      </div>
     </div>
   );
 };
