@@ -10,6 +10,8 @@
     nixPkgs = [
         'python39',
         'python39Packages.pip',
+        'python39Packages.setuptools',
+        'python39Packages.wheel',
         'nodejs_20',
         'gcc',  # Required for building some Python packages
         'postgresql'  # Required for psycopg2
