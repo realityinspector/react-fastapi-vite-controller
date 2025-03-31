@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
+import Register from './components/Register'
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [showRegister, setShowRegister] = useState(false);
 
   useEffect(() => {
     // Check if the user is logged in on app load
@@ -23,6 +25,11 @@ function App() {
     setIsAdmin(admin);
     localStorage.setItem('token', newToken);
     localStorage.setItem('isAdmin', admin.toString());
+  };
+
+  const handleRegister = (newToken: string, admin: boolean) => {
+    handleLogin(newToken, admin);
+    setShowRegister(false);
   };
 
   const handleLogout = () => {
@@ -48,7 +55,21 @@ function App() {
             onLogout={handleLogout} 
           />
         ) : (
-          <Auth onLogin={handleLogin} />
+          <div>
+            {showRegister ? (
+              <Register onRegister={handleRegister} />
+            ) : (
+              <Auth onLogin={handleLogin} />
+            )}
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setShowRegister(!showRegister)}
+                className="text-blue-500 hover:underline focus:outline-none"
+              >
+                {showRegister ? 'Already have an account? Login' : 'Need an account? Register'}
+              </button>
+            </div>
+          </div>
         )}
       </main>
       
