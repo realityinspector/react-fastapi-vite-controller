@@ -3,11 +3,13 @@ import './App.css'
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
 import Register from './components/Register'
+import Welcome from './components/Welcome'
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     // Check if the user is logged in on app load
@@ -30,6 +32,7 @@ function App() {
   const handleRegister = (newToken: string, admin: boolean) => {
     handleLogin(newToken, admin);
     setShowRegister(false);
+    setShowLogin(false);
   };
 
   const handleLogout = () => {
@@ -39,15 +42,28 @@ function App() {
     localStorage.removeItem('isAdmin');
   };
 
+  const showWelcomePage = () => {
+    setShowRegister(false);
+    setShowLogin(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">React FastAPI CMS</h1>
+          {!token && (showLogin || showRegister) && (
+            <button 
+              onClick={showWelcomePage}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              ← Back to home
+            </button>
+          )}
         </div>
       </header>
       
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="flex-grow max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 w-full">
         {token ? (
           <Dashboard 
             token={token} 
@@ -55,21 +71,24 @@ function App() {
             onLogout={handleLogout} 
           />
         ) : (
-          <div>
-            {showRegister ? (
+          <>
+            {showLogin ? (
+              <Auth onLogin={handleLogin} />
+            ) : showRegister ? (
               <Register onRegister={handleRegister} />
             ) : (
-              <Auth onLogin={handleLogin} />
+              <Welcome 
+                onShowLogin={() => {
+                  setShowLogin(true);
+                  setShowRegister(false);
+                }}
+                onShowRegister={() => {
+                  setShowRegister(true);
+                  setShowLogin(false);
+                }}
+              />
             )}
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setShowRegister(!showRegister)}
-                className="text-blue-500 hover:underline focus:outline-none"
-              >
-                {showRegister ? 'Already have an account? Login' : 'Need an account? Register'}
-              </button>
-            </div>
-          </div>
+          </>
         )}
       </main>
       
