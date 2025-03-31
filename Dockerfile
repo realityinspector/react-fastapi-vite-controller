@@ -31,11 +31,14 @@ RUN npm install --legacy-peer-deps
 # Build frontend
 RUN npm run build
 
-# Run database migrations and create admin user
-RUN cd backend && python -m alembic upgrade head && python create_admin.py
-
 # Expose port
 EXPOSE 8000
 
+# Create startup script
+RUN echo '#!/bin/sh\n\
+cd backend && python -m alembic upgrade head && python create_admin.py\n\
+(cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &) && npx serve -s dist -l 3000' > /app/start.sh && \
+    chmod +x /app/start.sh
+
 # Start the application
-CMD ["sh", "-c", "(cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &) && npx serve -s dist -l 3000"] 
+CMD ["/app/start.sh"] 
