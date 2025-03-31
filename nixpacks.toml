@@ -11,7 +11,6 @@
         'python39',
         'python39Packages.pip',
         'nodejs_20',
-        'npm',
         'gcc',  # Required for building some Python packages
         'postgresql'  # Required for psycopg2
     ]
