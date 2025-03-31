@@ -23,6 +23,13 @@ class UserCreate(BaseModel):
     email: str
     password: str
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user_id: int
+    email: str
+    is_admin: bool
+
 class User(BaseModel):
     id: int
     email: str
@@ -50,7 +57,7 @@ class Content(BaseModel):
         from_attributes = True
 
 # Authentication endpoints
-@app.post("/token", response_model=dict)
+@app.post("/token", response_model=Token)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(database.get_db)
@@ -66,7 +73,50 @@ async def login_for_access_token(
     access_token = auth.create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "user_id": user.id, 
+        "email": user.email, 
+        "is_admin": user.is_admin
+    }
+
+@app.post("/register", response_model=Token)
+def register_user(user: UserCreate, db: Session = Depends(database.get_db)):
+    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Make the first user an admin
+    is_admin = db.query(models.User).count() == 0
+    
+    hashed_password = auth.get_password_hash(user.password)
+    db_user = models.User(
+        email=user.email, 
+        hashed_password=hashed_password,
+        is_active=True,
+        is_admin=is_admin
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    
+    # Generate and return the token
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": db_user.email}, expires_delta=access_token_expires
+    )
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer", 
+        "user_id": db_user.id, 
+        "email": db_user.email, 
+        "is_admin": db_user.is_admin
+    }
+
+@app.get("/users/me", response_model=User)
+def read_users_me(current_user: models.User = Depends(auth.get_current_active_user)):
+    return current_user
 
 @app.post("/users/", response_model=User)
 def create_user(user: UserCreate, db: Session = Depends(database.get_db)):

@@ -5,9 +5,25 @@
     NPM_CONFIG_UPDATE_NOTIFIER = 'false' # the update notification is relatively useless in a production environment
     NPM_CONFIG_FUND = 'false' # the fund notification is also pretty useless in a production environment
 
+# Install Python dependencies for the backend
+[phases.python-deps]
+    dependsOn = ['setup']
+    cmds = [
+        'cd backend && python -m pip install --upgrade pip',
+        'cd backend && pip install -r requirements.txt'
+    ]
+
+# Run database migrations
+[phases.db-migrations]
+    dependsOn = ['python-deps']
+    cmds = [
+        'cd backend && python -m alembic upgrade head',
+        'cd backend && python create_admin.py'
+    ]
+
 # Install npm dependencies with legacy peer deps
 [phases.npm]
-    dependsOn = ['setup']
+    dependsOn = ['db-migrations']
     cmds = ['npm install --legacy-peer-deps']
 
 # Build the frontend
@@ -26,6 +42,6 @@
     dependsOn = ['caddy'] # make sure this phase runs after the 'caddy' phase so that we know we have caddy downloaded
     cmds = ['caddy fmt --overwrite Caddyfile'] # format the Caddyfile to fix any formatting inconsistencies
 
-# start the caddy web server
+# start the caddy web server and the FastAPI backend
 [start]
-    cmd = 'exec caddy run --config Caddyfile --adapter caddyfile 2>&1' # start caddy using the Caddyfile config and caddyfile adapter
+    cmd = '(cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000 &) && exec caddy run --config Caddyfile --adapter caddyfile 2>&1'
