@@ -1,8 +1,8 @@
 # global options
 {
-	admin off # theres no need for the admin api in railway's environment
+	admin off # Disable the admin API
 	persist_config off # storage isn't persistent anyway
-	auto_https off # railway handles https for us, this would cause issues if left enabled
+	auto_https off # railway handles https for us
 	# runtime logs
 	log {
 		format json # set runtime log format to json mode 
@@ -34,4 +34,34 @@
 
 	# if path doesn't exist, redirect it to 'index.html' for client side routing
 	try_files {path} /index.html
+}
+
+:80 {
+	# Enable compression
+	encode gzip
+
+	# Handle API requests - proxy to the backend FastAPI service
+	handle_path /api/* {
+		# Strip the /api prefix when forwarding to the backend
+		uri strip_prefix /api
+		reverse_proxy localhost:8000
+	}
+
+	# Serve the React app
+	handle {
+		# Root directory for static files
+		root * /app/dist
+
+		# Try to serve static files first, then fall back to index.html
+		try_files {path} /index.html
+
+		# Enable file serving
+		file_server
+	}
+
+	# Log all requests
+	log {
+		output stdout
+		format console
+	}
 }
