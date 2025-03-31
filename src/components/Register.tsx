@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API_URL = '/api'; // The API URL is now proxied through Caddy
+
 interface RegisterProps {
   onRegister: (token: string, isAdmin: boolean) => void;
 }
@@ -21,10 +23,15 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/register', {
+      const response = await axios.post(`${API_URL}/register`, {
         email,
         password,
       });
@@ -44,7 +51,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">Create your account</h2>
       
       {error && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -52,23 +59,26 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
         </div>
       )}
       
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-            Email
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            Email address
           </label>
           <input
             type="email"
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             required
           />
+          <p className="mt-1 text-sm text-gray-500">
+            The first user to register will automatically become the admin.
+          </p>
         </div>
         
-        <div className="mb-4">
-          <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
             Password
           </label>
           <input
@@ -76,13 +86,13 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             required
           />
         </div>
 
-        <div className="mb-6">
-          <label htmlFor="confirmPassword" className="block text-gray-700 font-medium mb-2">
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
             Confirm Password
           </label>
           <input
@@ -90,7 +100,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
             id="confirmPassword"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             required
           />
         </div>
@@ -98,9 +108,9 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
-          {loading ? 'Registering...' : 'Register'}
+          {loading ? 'Creating account...' : 'Register'}
         </button>
       </form>
     </div>
