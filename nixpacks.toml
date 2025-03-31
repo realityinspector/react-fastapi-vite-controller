@@ -5,9 +5,9 @@
     NPM_CONFIG_UPDATE_NOTIFIER = 'false' # the update notification is relatively useless in a production environment
     NPM_CONFIG_FUND = 'false' # the fund notification is also pretty useless in a production environment
 
-# Specify Python version
+# Specify Python and Node.js versions
 [phases.setup]
-    nixPkgs = ['python39', 'python39Packages.pip']
+    nixPkgs = ['python39', 'python39Packages.pip', 'nodejs_20', 'npm']
 
 # Install Python dependencies for the backend
 [phases.python-deps]
